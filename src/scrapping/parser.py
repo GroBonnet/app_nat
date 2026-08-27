@@ -236,6 +236,9 @@ def parse_event_page(html: str) -> list[dict]:
         if not event:
             continue  # ex. "Classement des 1/2 Finales" : pas une épreuve
 
+        if event["is_relay"]:
+            continue
+
         phase = event["phase"]
         gender = event["gender"]
         date_iso = parse_fr_date(date_text) or parse_fr_date(header_text)
