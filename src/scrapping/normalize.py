@@ -47,11 +47,11 @@ def centiseconds_to_str(cs: int | None) -> str:
 
 # Nage libre / Dos / Brasse / Papillon / 4 Nages, avec variantes d'orthographe.
 _STROKE_PATTERNS = [
-    ("NL", re.compile(r"nage\s*libre|\bnl\b|\blibre\b|freestyle", re.I)),
-    ("4N", re.compile(r"4\s*nages|quatre\s*nages|medley", re.I)),
-    ("DOS", re.compile(r"\bdos\b|backstroke", re.I)),
-    ("BRA", re.compile(r"brasse|breaststroke", re.I)),
-    ("PAP", re.compile(r"papillon|\bpap\b|butterfly", re.I)),
+    ("NL", re.compile(r"nage\s*libre|\bnl\b|\blibre\b|freestyle", re.IGNORECASE)),
+    ("4N", re.compile(r"4\s*nages|quatre\s*nages|medley", re.IGNORECASE)),
+    ("DOS", re.compile(r"\bdos\b|backstroke", re.IGNORECASE)),
+    ("BRA", re.compile(r"brasse|breaststroke", re.IGNORECASE)),
+    ("PAP", re.compile(r"papillon|\bpap\b|butterfly", re.IGNORECASE)),
 ]
 
 _STROKE_LABELS = {
@@ -119,9 +119,12 @@ def parse_event_title(title: str) -> dict | None:
         return None
     text = title.strip()
 
-    is_relay = bool(re.search(r"\b\d\s*x\s*\d", text, re.I)) or "relais" in text.lower()
+    is_relay = (
+        bool(re.search(r"\b\d\s*x\s*\d", text, re.IGNORECASE))
+        or "relais" in text.lower()
+    )
 
-    relay_m = re.search(r"(\d)\s*x\s*(\d{2,4})", text, re.I)
+    relay_m = re.search(r"(\d)\s*x\s*(\d{2,4})", text, re.IGNORECASE)
     if relay_m:
         distance = int(relay_m.group(1)) * int(relay_m.group(2))
     else:
@@ -156,9 +159,21 @@ def stroke_label(code: str) -> str:
 
 
 _FR_MONTHS = {
-    "janvier": 1, "février": 2, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5,
-    "juin": 6, "juillet": 7, "août": 8, "aout": 8, "septembre": 9,
-    "octobre": 10, "novembre": 11, "décembre": 12, "decembre": 12,
+    "janvier": 1,
+    "février": 2,
+    "fevrier": 2,
+    "mars": 3,
+    "avril": 4,
+    "mai": 5,
+    "juin": 6,
+    "juillet": 7,
+    "août": 8,
+    "aout": 8,
+    "septembre": 9,
+    "octobre": 10,
+    "novembre": 11,
+    "décembre": 12,
+    "decembre": 12,
 }
 
 
@@ -176,6 +191,7 @@ def parse_fr_date(text: str) -> str | None:
 
 
 # --- Divers ----------------------------------------------------------------
+
 
 def parse_birth_year(text: str) -> int | None:
     """Récupère l'année de naissance dans un fragment type "(2011/15 ans)"."""

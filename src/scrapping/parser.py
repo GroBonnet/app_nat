@@ -5,11 +5,15 @@ from urllib.parse import parse_qs, urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
-from src.scrapping.normalize import (parse_birth_year, parse_event_title, parse_fr_date,
-                        time_to_centiseconds)
+from src.scrapping.normalize import (
+    parse_birth_year,
+    parse_event_title,
+    parse_fr_date,
+    time_to_centiseconds,
+)
 
 _TIME_RE = re.compile(r"^(?:\d{1,2}:){0,2}\d{1,2}[.,]\d{2}$")
-_POINTS_RE = re.compile(r"(\d{1,4})\s*pts", re.I)
+_POINTS_RE = re.compile(r"(\d{1,4})\s*pts", re.IGNORECASE)
 _REACT_RE = re.compile(r"^[+\-]\d[.,]\d{2}$")
 _RANK_RE = re.compile(r"^(\d{1,3})\.?$")
 _NAT_RE = re.compile(r"\)\s*([A-Z]{3})\s*$")  # nationalité en fin : "(2002/23 ans) AUS"
@@ -50,8 +54,15 @@ def parse_competition_meta(html: str) -> dict:
     name = city = country = None
 
     _LOC_RE = re.compile(r"(.*?)\s*-\s*([A-ZÀ-Ý][^()]+?)\s*\(([A-Z]{2,3})\)\s*$")
-    _SKIP = {"légende", "legende", "espace ressources", "partenaires",
-             "sites complémentaires", "contact", "consulter vos résultats"}
+    _SKIP = {
+        "légende",
+        "legende",
+        "espace ressources",
+        "partenaires",
+        "sites complémentaires",
+        "contact",
+        "consulter vos résultats",
+    }
 
     headings = soup.find_all(["h1", "h2", "h3"])
     title_tag = None
@@ -79,18 +90,22 @@ def parse_competition_meta(html: str) -> dict:
         raw = title_tag.get_text(" ", strip=True)
         m = _LOC_RE.match(raw)
         if m:
-            name, city, country = m.group(1).strip(), m.group(2).strip().title(), m.group(3)
+            name, city, country = (
+                m.group(1).strip(),
+                m.group(2).strip().title(),
+                m.group(3),
+            )
         else:
             name = raw
 
     text = soup.get_text(" ", strip=True)
     pool_size = None
-    if re.search(r"grand\s*bassin", text, re.I):
+    if re.search(r"grand\s*bassin", text, re.IGNORECASE):
         pool_size = 50
-    elif re.search(r"petit\s*bassin", text, re.I):
+    elif re.search(r"petit\s*bassin", text, re.IGNORECASE):
         pool_size = 25
     else:
-        pm = re.search(r"bassin\s*(?:de)?\s*(\d{2})\s*m", text, re.I)
+        pm = re.search(r"bassin\s*(?:de)?\s*(\d{2})\s*m", text, re.IGNORECASE)
         if pm:
             pool_size = int(pm.group(1))
 
@@ -118,7 +133,9 @@ def parse_event_urls(html: str, base_url: str | None = None) -> list[str]:
 
 
 # --- Résultats d'une page d'épreuve ---------------------------------------
-def _parse_row(tds, event: dict, phase: str | None, date_iso: str | None, gender: str | None) -> dict | None:
+def _parse_row(
+    tds, event: dict, phase: str | None, date_iso: str | None, gender: str | None
+) -> dict | None:
     cells = [td.get_text(" ", strip=True) for td in tds]
 
     # nageur : la cellule qui contient un lien idres
@@ -158,7 +175,7 @@ def _parse_row(tds, event: dict, phase: str | None, date_iso: str | None, gender
             reaction = c.replace(",", ".")
             break
 
-    iuf = idres = idban = None
+    iuf = idres = None
     full_name = last_name = first_name = None
     nationality = birth_year = None
     if swim_a is not None:
@@ -166,7 +183,6 @@ def _parse_row(tds, event: dict, phase: str | None, date_iso: str | None, gender
         iuf = _anchor(href)
         iuf = int(iuf) if iuf and re.fullmatch(r"-?\d+", iuf) else None
         idres = _qp(href, "idres")
-        idban = _qp(href, "idban")
         stext = swim_a.get_text(" ", strip=True)
         nm = _NAT_RE.search(stext)
         if nm:
@@ -213,7 +229,7 @@ def _rows_after_thead(thead) -> list:
         if node is None:
             break
         name = getattr(node, "name", None)
-        if name == "thead":          # manche suivante -> stop
+        if name == "thead":  # manche suivante -> stop
             break
         if name == "tbody":
             rows.extend(node.find_all("tr", recursive=False))
@@ -243,7 +259,6 @@ def parse_event_page(html: str) -> list[dict]:
         gender = event["gender"]
         date_iso = parse_fr_date(date_text) or parse_fr_date(header_text)
 
-        
         for tr in _rows_after_thead(thead):
             tds = tr.find_all("td", recursive=False) or tr.find_all("td")
             if not tds:

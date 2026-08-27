@@ -50,16 +50,16 @@ def _extract_range(text: str) -> tuple[str | None, str | None]:
 
 
 _CATEGORY_PATTERNS = [
-    ("Master", re.compile(r"ma[îi]tres?|masters?", re.I)),
-    ("Universitaire", re.compile(r"universitaires?|universiade", re.I)),
-    ("U23", re.compile(r"\bu23?\b", re.I)),
-    ("Junior", re.compile(r"\bjuniors?\b", re.I)),
-    ("Cadet", re.compile(r"\bcadet(te)?s?\b", re.I)),
-    ("Minime", re.compile(r"\bminimes?\b", re.I)),
-    ("Benjamin", re.compile(r"\bbenjamin(e)?s?\b", re.I)),
-    ("Avenir", re.compile(r"\bavenirs?\b", re.I)),
-    ("Jeune", re.compile(r"\bjeunes?\b|jeunesse", re.I)),
-    ("Senior", re.compile(r"\bs[ée]niors?\b", re.I)),
+    ("Master", re.compile(r"ma[îi]tres?|masters?", re.IGNORECASE)),
+    ("Universitaire", re.compile(r"universitaires?|universiade", re.IGNORECASE)),
+    ("U23", re.compile(r"\bu23?\b", re.IGNORECASE)),
+    ("Junior", re.compile(r"\bjuniors?\b", re.IGNORECASE)),
+    ("Cadet", re.compile(r"\bcadet(te)?s?\b", re.IGNORECASE)),
+    ("Minime", re.compile(r"\bminimes?\b", re.IGNORECASE)),
+    ("Benjamin", re.compile(r"\bbenjamin(e)?s?\b", re.IGNORECASE)),
+    ("Avenir", re.compile(r"\bavenirs?\b", re.IGNORECASE)),
+    ("Jeune", re.compile(r"\bjeunes?\b|jeunesse", re.IGNORECASE)),
+    ("Senior", re.compile(r"\bs[ée]niors?\b", re.IGNORECASE)),
 ]
 
 
@@ -97,15 +97,20 @@ _LEVEL_RE = re.compile(
 )
 
 
-def build_list_url(season_end_year: int, month: int | None = None,
-                   idtyp: int | str | None = None, idreg: str = "", iddep: str = "") -> str:
+def build_list_url(
+    season_end_year: int,
+    month: int | None = None,
+    idtyp: int | str | None = None,
+    idreg: str = "",
+    iddep: str = "",
+) -> str:
     """Construit l'URL de la liste filtrée."""
     if isinstance(idtyp, str) and idtyp:
         idtyp = TYPE_CODES.get(idtyp, idtyp)
     parts = ["idact=nat", f"idsai={season_end_year}"]
     if month:
         parts.append(f"idmth={month}")
-    if idtyp not in (None, "", 0):        # aucun type -> toutes les compétitions
+    if idtyp not in (None, "", 0):  # aucun type -> toutes les compétitions
         parts.append(f"idtyp={idtyp}")
     parts.append(f"idreg={idreg}")
     parts.append(f"iddep={iddep}")
@@ -118,7 +123,12 @@ def _idcpt(href: str) -> int | None:
 
 
 def _is_comp_link(href: str | None) -> bool:
-    return bool(href) and "resultats.php" in href and "idcpt=" in href and "go=res" not in href
+    return (
+        bool(href)
+        and "resultats.php" in href
+        and "idcpt=" in href
+        and "go=res" not in href
+    )
 
 
 def parse_competition_list(html: str) -> list[dict]:
@@ -131,7 +141,11 @@ def parse_competition_list(html: str) -> list[dict]:
         if id_cpt is None:
             continue
         name = a.get_text(" ", strip=True)
-        block = a.find_parent("div", class_="border-b") or a.find_parent(["li", "div"]) or a.parent
+        block = (
+            a.find_parent("div", class_="border-b")
+            or a.find_parent(["li", "div"])
+            or a.parent
+        )
         text = block.get_text(" ", strip=True) if block else name
 
         date_start, date_end = _extract_range(text)
@@ -155,21 +169,30 @@ def parse_competition_list(html: str) -> list[dict]:
             level = lm.group(1)
 
         category = detect_category(name, comp_type or "")
-        
+
         prev = found.get(id_cpt)
         if prev is None or len(name) > len(prev["name"]):
             found[id_cpt] = {
-                "id_cpt": id_cpt, "name": name,
-                "date_start": date_start, "date_end": date_end,
-                "city": city, "country": country,
-                "level": level, "type": comp_type, "type_code": type_code,
+                "id_cpt": id_cpt,
+                "name": name,
+                "date_start": date_start,
+                "date_end": date_end,
+                "city": city,
+                "country": country,
+                "level": level,
+                "type": comp_type,
+                "type_code": type_code,
                 "category": category,
             }
 
-    return sorted(found.values(), key=lambda c: (c["date_start"] or "9999", c["id_cpt"]))
+    return sorted(
+        found.values(), key=lambda c: (c["date_start"] or "9999", c["id_cpt"])
+    )
 
 
-def discover(season_end_year: int, month: int | None, client, idtyp: int | str | None = None) -> list[dict]:
+def discover(
+    season_end_year: int, month: int | None, client, idtyp: int | str | None = None
+) -> list[dict]:
     """Télécharge la liste filtrée et renvoie les compétitions."""
     url = build_list_url(season_end_year, month, idtyp)
     html = client.get(url)
@@ -183,7 +206,7 @@ def discover_from_file(path: str) -> list[dict]:
 
 
 _MAJOR_RE = re.compile(
-    r"championnats?\s+d[u']?\s*(monde|europe)|jeux\s+olympiques|olympic", re.I
+    r"championnats?\s+d[u']?\s*(monde|europe)|jeux\s+olympiques|olympic", re.IGNORECASE
 )
 
 

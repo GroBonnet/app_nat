@@ -1,24 +1,32 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.scrapping.client import Client
-from src.scrapping.parser import parse_competition_meta, parse_event_page, parse_event_urls
+from src.scrapping.parser import (
+    parse_competition_meta,
+    parse_event_page,
+    parse_event_urls,
+)
 
 log = logging.getLogger("ffn.scraper")
 
 
-def collect_competition(id_cpt: int, client: Client, meta_hint: dict | None = None,
-                        force: bool = False) -> dict:
+def collect_competition(
+    id_cpt: int, client: Client, meta_hint: dict | None = None, force: bool = False
+) -> dict:
     """Scrape une compétition et renvoie {competition, results} (données brutes)."""
-    first = client.get("resultats.php",
-                       {"idact": "nat", "idcpt": id_cpt, "go": "epr"}, force=force)
+    first = client.get(
+        "resultats.php", {"idact": "nat", "idcpt": id_cpt, "go": "epr"}, force=force
+    )
     meta = parse_competition_meta(first)
     event_urls = parse_event_urls(first)
 
     if not event_urls:
-        landing = client.get("resultats.php", {"idact": "nat", "idcpt": id_cpt}, force=force)
+        landing = client.get(
+            "resultats.php", {"idact": "nat", "idcpt": id_cpt}, force=force
+        )
         meta = parse_competition_meta(landing) or meta
         event_urls = parse_event_urls(landing)
 
@@ -44,7 +52,9 @@ def collect_competition(id_cpt: int, client: Client, meta_hint: dict | None = No
         "category": (meta_hint or {}).get("category"),
         "n_events": len(event_urls),
         "n_results": len(results),
-        "scraped_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "scraped_at": datetime.now(UTC).isoformat(timespec="seconds"),
     }
-    log.info("cpt %s : %d épreuves, %d résultats", id_cpt, len(event_urls), len(results))
+    log.info(
+        "cpt %s : %d épreuves, %d résultats", id_cpt, len(event_urls), len(results)
+    )
     return {"competition": merged, "results": results}

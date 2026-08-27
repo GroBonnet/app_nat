@@ -46,7 +46,9 @@ class Client:
             time.sleep(self.min_delay - elapsed)
         self._last_request = time.time()
 
-    def get(self, path_or_url: str, params: dict | None = None, force: bool = False) -> str:
+    def get(
+        self, path_or_url: str, params: dict | None = None, force: bool = False
+    ) -> str:
         url = path_or_url if path_or_url.startswith("http") else BASE + path_or_url
         if params:
             req = requests.Request("GET", url, params=params).prepare()
@@ -73,6 +75,8 @@ class Client:
                 return html
             except Exception as exc:  # noqa: BLE001
                 last_exc = exc
-                wait = self.min_delay * (2 ** attempt)
+                wait = self.min_delay * (2**attempt)
                 time.sleep(wait)
-        raise RuntimeError(f"Échec du téléchargement après {self.max_retries} essais : {url}") from last_exc
+        raise RuntimeError(
+            f"Échec du téléchargement après {self.max_retries} essais : {url}"
+        ) from last_exc

@@ -9,7 +9,9 @@ from src.domain.schema import club, competition, event, result, swimmer
 
 def _insert(table, conn):
     """Renvoie le constructeur INSERT du bon dialecte (pour ON CONFLICT)."""
-    return pg_insert(table) if conn.dialect.name == "postgresql" else sqlite_insert(table)
+    return (
+        pg_insert(table) if conn.dialect.name == "postgresql" else sqlite_insert(table)
+    )
 
 
 def upsert_competitions(conn, rows: list[dict]) -> None:
@@ -55,8 +57,9 @@ def upsert_events(conn, rows: list[dict]) -> dict[tuple, int]:
             index_elements=["distance", "stroke", "is_relay"]
         )
         conn.execute(stmt, rows)
-    res = conn.execute(select(event.c.id_event, event.c.distance,
-                              event.c.stroke, event.c.is_relay))
+    res = conn.execute(
+        select(event.c.id_event, event.c.distance, event.c.stroke, event.c.is_relay)
+    )
     return {(d, s, bool(r)): i for (i, d, s, r) in res}
 
 

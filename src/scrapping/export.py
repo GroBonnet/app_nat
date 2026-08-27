@@ -51,27 +51,29 @@ def competition_document(data: dict) -> dict:
     rows = []
     for r in data["results"]:
         ev = r.get("event", {})
-        rows.append({
-            "event": ev.get("label"),
-            "distance": ev.get("distance"),
-            "stroke": ev.get("stroke"),
-            "is_relay": r.get("is_relay"),
-            "gender": r.get("gender"),
-            "phase": r.get("phase"),
-            "date": r.get("date"),
-            "rank": r.get("rank"),
-            "time_cs": r.get("time_cs"),
-            "time": centiseconds_to_str(r.get("time_cs")),
-            "reaction": r.get("reaction"),
-            "points": r.get("points"),
-            "iuf": r.get("iuf"),
-            "id_result": r.get("id_result"),
-            "swimmer": r.get("full_name"),
-            "birth_year": r.get("birth_year"),
-            "nationality": r.get("nationality"),
-            "id_club": r.get("id_club"),
-            "club": r.get("club_name"),
-        })
+        rows.append(
+            {
+                "event": ev.get("label"),
+                "distance": ev.get("distance"),
+                "stroke": ev.get("stroke"),
+                "is_relay": r.get("is_relay"),
+                "gender": r.get("gender"),
+                "phase": r.get("phase"),
+                "date": r.get("date"),
+                "rank": r.get("rank"),
+                "time_cs": r.get("time_cs"),
+                "time": centiseconds_to_str(r.get("time_cs")),
+                "reaction": r.get("reaction"),
+                "points": r.get("points"),
+                "iuf": r.get("iuf"),
+                "id_result": r.get("id_result"),
+                "swimmer": r.get("full_name"),
+                "birth_year": r.get("birth_year"),
+                "nationality": r.get("nationality"),
+                "id_club": r.get("id_club"),
+                "club": r.get("club_name"),
+            }
+        )
     return {**comp, "results": rows}
 
 
