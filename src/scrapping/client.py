@@ -73,7 +73,7 @@ class Client:
                 if self.use_cache:
                     cache_file.write_text(html, encoding="utf-8", errors="replace")
                 return html
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 last_exc = exc
                 wait = self.min_delay * (2**attempt)
                 time.sleep(wait)

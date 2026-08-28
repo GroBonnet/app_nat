@@ -24,7 +24,7 @@ PARSER = "html.parser"  # gère mieux les tables imbriquées d'ExtraNat que lxml
 def _qp(href: str, key: str) -> str | None:
     try:
         return parse_qs(urlparse(href).query).get(key, [None])[0]
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
 
 
@@ -53,8 +53,8 @@ def parse_competition_meta(html: str) -> dict:
     soup = BeautifulSoup(html, PARSER)
     name = city = country = None
 
-    _LOC_RE = re.compile(r"(.*?)\s*-\s*([A-ZÀ-Ý][^()]+?)\s*\(([A-Z]{2,3})\)\s*$")
-    _SKIP = {
+    loc_re = re.compile(r"(.*?)\s*-\s*([A-ZÀ-Ý][^()]+?)\s*\(([A-Z]{2,3})\)\s*$")
+    skip = {
         "légende",
         "legende",
         "espace ressources",
@@ -68,7 +68,7 @@ def parse_competition_meta(html: str) -> dict:
     title_tag = None
     # 1) titre "Nom - VILLE (PAYS)"
     for h in headings:
-        if _LOC_RE.match(h.get_text(" ", strip=True)):
+        if loc_re.match(h.get_text(" ", strip=True)):
             title_tag = h
             break
     # 2) sinon, l'en-tête mis en avant (text-lg font-bold)
@@ -82,13 +82,13 @@ def parse_competition_meta(html: str) -> dict:
     if title_tag is None:
         for h in headings:
             t = h.get_text(" ", strip=True)
-            if t and t.lower() not in _SKIP:
+            if t and t.lower() not in skip:
                 title_tag = h
                 break
 
     if title_tag is not None:
         raw = title_tag.get_text(" ", strip=True)
-        m = _LOC_RE.match(raw)
+        m = loc_re.match(raw)
         if m:
             name, city, country = (
                 m.group(1).strip(),

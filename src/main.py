@@ -7,7 +7,7 @@ app = FastAPI(
     title="FFN Stats API",
     version="0.1.0",
     description="Consultation des résultats de natation (compétitions, épreuves, "
-                "nageurs) avec filtres.",
+    "nageurs) avec filtres.",
 )
 
 

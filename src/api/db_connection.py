@@ -1,4 +1,5 @@
 """Connexion à la base pour l'API (réutilise la config du module `pg`)."""
+
 from __future__ import annotations
 
 import functools
