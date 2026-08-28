@@ -69,3 +69,25 @@ class ResultsPage(BaseModel):
     limit: int
     offset: int
     items: list[Result]
+
+
+class DistanceScore(BaseModel):
+    distance: int
+    time_cs: int
+    time: str
+    wr_time_cs: int
+    wr_holder: str
+    score: float
+
+
+class StrokeProfile(BaseModel):
+    stroke: str
+    score: float | None = None
+    distances: list[DistanceScore] = []
+
+
+class AthleteProfile(BaseModel):
+    iuf: int
+    swimmer: str | None = None
+    pool_size: int
+    strokes: list[StrokeProfile]
